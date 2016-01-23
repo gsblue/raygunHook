@@ -12,7 +12,7 @@ import (
 
 func init() {
 	h, err := NewHook(&HookConfig{
-		ApiKey:  "0Ih1ot2kApNL26wK0OAdvA==",
+		ApiKey:  "your api key",
 		AppName: "raygun hook test",
 		Version: "2.1.10",
 		Tags:    []string{"development"},
