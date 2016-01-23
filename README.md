@@ -35,3 +35,5 @@ func SomeFunctionWhichLogs() {
 		Error()
 }
 ```
+
+Pull requests are welcome.
