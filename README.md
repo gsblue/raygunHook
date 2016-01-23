@@ -1,4 +1,5 @@
-# Raygun Hook [![Build Status](https://travis-ci.org/gsblue/raygunHook.svg)](https://travis-ci.org/gsblue/raygunHook) [![Coverage Status](https://coveralls.io/repos/gsblue/raygunHook/badge.svg?branch=master&service=github)](https://coveralls.io/github/SEEK-Jobs/pact-go?branch=master)
+# Raygun Hook [![Build Status](https://travis-ci.org/gsblue/raygunHook.svg)](https://travis-ci.org/gsblue/raygunHook) [![Coverage Status](https://coveralls.io/repos/github/gsblue/raygunHook/badge.svg?branch=master)](https://coveralls.io/github/gsblue/raygunHook?branch=master)
+
 A Raygun.io hook for logrus. This package uses fork of [raygun4go](https://github.com/gsblue/raygun4go) client which allows concurrent calls to submit errors to raygun.
 
 ##Usage
