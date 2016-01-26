@@ -9,7 +9,7 @@
 		},
 		{
 			"ImportPath": "github.com/gsblue/raygun4go",
-			"Rev": "58c0a4609db316c731a4eae5ee91d39ab4ea5f78"
+			"Rev": "a2264ee5e8b454997acbe8ea16147dd0b2494fd4"
 		},
 		{
 			"ImportPath": "github.com/kaeuferportal/stack2struct",

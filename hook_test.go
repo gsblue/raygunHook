@@ -17,7 +17,7 @@ func TestNewHook_WhenInvalidConfig_ShouldReturnError(t *testing.T) {
 }
 
 func TestNewHook_WhenValidConfig_ShouldReturnHook(t *testing.T) {
-	if h, e := NewHook(&HookConfig{ApiKey: "key", AppName: "app name"}); e != nil {
+	if h, e := NewHook(&HookConfig{APIKey: "key", AppName: "app name"}); e != nil {
 		t.Errorf("did not expect error: %s", e)
 	} else if h == nil {
 		t.Error("expected hook to be not nil")
@@ -29,7 +29,8 @@ func TestFire_WhenLogEntryHasError_ShouldSubmitEntry(t *testing.T) {
 	r := &http.Request{}
 	u := "user"
 	cd := &struct{ name string }{"custom"}
-	client, _ := raygun4go.New("key", "app name", "1.0", nil)
+	client, _ := raygun4go.New("key", "app name")
+	client.Version("1.0")
 	h := &hook{
 		Client: &raygunClientMock{
 			c: client,
@@ -58,7 +59,9 @@ func TestFire_WhenLogEntryErrorMsg_ShouldSubmitEntry(t *testing.T) {
 	r := &http.Request{}
 	u := "user"
 	cd := &struct{ name string }{"custom"}
-	client, _ := raygun4go.New("key", "app name", "1.0", nil)
+	client, _ := raygun4go.New("key", "app name")
+	client.Version("1.0")
+
 	h := &hook{
 		Client: &raygunClientMock{
 			c: client,
@@ -84,7 +87,9 @@ func TestFire_WhenLogEntryErrorMsg_ShouldSubmitEntry(t *testing.T) {
 
 func TestFire_WhenClientReturnsError_ShouldReturnError(t *testing.T) {
 	errClient := errors.New("client error")
-	client, _ := raygun4go.New("key", "app name", "1.0", nil)
+	client, _ := raygun4go.New("key", "app name")
+	client.Version("1.0")
+
 	h := &hook{
 		Client: &raygunClientMock{
 			c: client,
