@@ -1,3 +1,5 @@
+//Package raygunHook provides the hook for logrus, to send errors to raygun.io
+//for more details visit https://www.github.com/gsblue/raygunHook
 package raygunHook
 
 import (
@@ -12,7 +14,7 @@ type hook struct {
 
 //HookConfig is the struct to hold the configuration values required for the hook.
 type HookConfig struct {
-	APIKey  string   //ApiKey for your raygun account. This field is mandatory.
+	APIKey  string   //APIKey for your raygun account. This field is mandatory.
 	AppName string   //AppName is your application name. This field is mandatory.
 	Version string   //Version of your application
 	Tags    []string //Tags which get added to all the error entries
