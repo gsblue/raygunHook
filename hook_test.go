@@ -2,8 +2,8 @@ package raygunHook
 
 import (
 	"errors"
-	"github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/Sirupsen/logrus"
-	"github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/gsblue/raygun4go"
+	"github.com/Sirupsen/logrus"
+	"github.com/gsblue/raygun4go"
 	"net/http"
 	"testing"
 )

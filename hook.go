@@ -48,6 +48,24 @@ func NewHook(config *HookConfig) (logrus.Hook, error) {
 	return &hook{Client: c}, nil
 }
 
+//EntryWithRequest is a helper function to add request to a logrus.Entry
+//This information eventually gets sent to raygun to.
+func EntryWithRequest(e *logrus.Entry, r *http.Request) *logrus.Entry {
+	return e.WithField(RequestFieldName, ray.NewRequestData(r))
+}
+
+//EntryWithUser is a helper function to add user identifier to a logrus Entry
+//This information eventually gets sent to raygun to.
+func EntryWithUser(e *logrus.Entry, user string) *logrus.Entry {
+	return e.WithField(UserFieldName, user)
+}
+
+//EntryWithUser is a helper function to add custom data to a logrus Entry
+//This information eventually gets sent to raygun to.
+func EntryWithCustomData(e *logrus.Entry, data interface{}) *logrus.Entry {
+	return e.WithField(UserFieldName, data)
+}
+
 //Fire sends the error from logrus.Entry to raygun
 func (h *hook) Fire(e *logrus.Entry) error {
 	var entry *ray.ErrorEntry
@@ -63,8 +81,8 @@ func (h *hook) Fire(e *logrus.Entry) error {
 	}
 
 	if val, ok := e.Data[RequestFieldName]; ok {
-		if req, ok := val.(*http.Request); ok {
-			entry.SetRequest(req)
+		if req, ok := val.(*ray.RequestData); ok {
+			entry.Request = req
 		}
 	}
 
