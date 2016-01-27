@@ -3,8 +3,8 @@
 package raygunHook
 
 import (
-	"github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/Sirupsen/logrus"
-	ray "github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/gsblue/raygun4go"
+	"github.com/Sirupsen/logrus"
+	ray "github.com/gsblue/raygun4go"
 	"net/http"
 )
 
