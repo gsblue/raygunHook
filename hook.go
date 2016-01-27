@@ -63,7 +63,7 @@ func EntryWithUser(e *logrus.Entry, user string) *logrus.Entry {
 //EntryWithUser is a helper function to add custom data to a logrus Entry
 //This information eventually gets sent to raygun to.
 func EntryWithCustomData(e *logrus.Entry, data interface{}) *logrus.Entry {
-	return e.WithField(UserFieldName, data)
+	return e.WithField(CustomDataFieldName, data)
 }
 
 //Fire sends the error from logrus.Entry to raygun
