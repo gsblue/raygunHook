@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/pborman/uuid"
+	"github.com/pborman/uuid"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

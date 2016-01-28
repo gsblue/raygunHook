@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gsblue/raygunHook/Godeps/_workspace/src/github.com/kaeuferportal/stack2struct"
+	"github.com/kaeuferportal/stack2struct"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
