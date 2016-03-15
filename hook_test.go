@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"reflect"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/gsblue/raygunclient"
 	"github.com/gsblue/raygunclient/stack"
@@ -41,6 +43,36 @@ func TestFire_WhenLogEntryHasError_ShouldSubmitEntry(t *testing.T) {
 	le = EntryWithRequest(le, r)
 	le = EntryWithUser(le, u)
 	le = EntryWithCustomData(le, cd)
+
+	if err := h.Fire(le); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestFire_WhenLogEntryHasErrorWithStackTrace_ShouldSubmitEntryWithStackTrace(t *testing.T) {
+	e := errors.New("test error")
+	trace := make(stack.Trace, 0, 0)
+	trace.AddEntry(23, "github.com/gsblue/raygunclient", "main.go", "Notify")
+
+	h := &hook{
+		notifier: &raygunClientMock{
+			mockNotifyWithStackTrace: func(entry *raygunclient.ErrorEntry, s stack.Trace) error {
+				if entry == nil {
+					t.Error("entry should not be nil")
+				} else if s == nil {
+					t.Error("trace should not be nil")
+				} else if !reflect.DeepEqual(s, trace) {
+					t.Errorf("expected %v, got %v", trace, s)
+				}
+				return nil
+			},
+		},
+	}
+
+	le := logrus.NewEntry(logrus.StandardLogger()).
+		WithField(ErrorFieldName, e)
+
+	le = EntryWithStackTrace(le, trace)
 
 	if err := h.Fire(le); err != nil {
 		t.Error(err)
