@@ -21,7 +21,4 @@ _testmain.go
 
 *.exe
 *.test
-
-#output
-src
-pkg
+*.prof

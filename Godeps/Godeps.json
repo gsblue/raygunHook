@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/gsblue/raygunHook",
-	"GoVersion": "go1.5.2",
+	"GoVersion": "go1.6",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -8,8 +11,8 @@
 			"Rev": "f7f79f729e0fbe2fcc061db48a9ba0263f588252"
 		},
 		{
-			"ImportPath": "github.com/gsblue/raygun4go",
-			"Rev": "a9175b58001e53d46478ffed13e0ab48a8b09a1a"
+			"ImportPath": "github.com/gsblue/raygunclient",
+			"Rev": "c580b3fa32e12a07f9a28c31bda24249d2e8ef1f"
 		},
 		{
 			"ImportPath": "github.com/kaeuferportal/stack2struct",

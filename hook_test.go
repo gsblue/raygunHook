@@ -2,39 +2,31 @@ package raygunHook
 
 import (
 	"errors"
-	"github.com/Sirupsen/logrus"
-	"github.com/gsblue/raygun4go"
 	"net/http"
 	"testing"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/gsblue/raygunclient"
+	"github.com/gsblue/raygunclient/stack"
 )
 
-func TestNewHook_WhenInvalidConfig_ShouldReturnError(t *testing.T) {
-	if h, e := NewHook(&HookConfig{}); e == nil {
-		t.Error("expected error from client")
-	} else if h != nil {
-		t.Error("expected hook to be nil")
-	}
-}
-
 func TestNewHook_WhenValidConfig_ShouldReturnHook(t *testing.T) {
-	if h, e := NewHook(&HookConfig{APIKey: "key", AppName: "app name"}); e != nil {
-		t.Errorf("did not expect error: %s", e)
-	} else if h == nil {
+	h := NewHook(&HookConfig{APIKey: "key"})
+
+	if h == nil {
 		t.Error("expected hook to be not nil")
 	}
 }
 
 func TestFire_WhenLogEntryHasError_ShouldSubmitEntry(t *testing.T) {
 	e := errors.New("test error")
-	r := &http.Request{}
+	r, _ := http.NewRequest("GET", "/", nil)
 	u := "user"
 	cd := &struct{ name string }{"custom"}
-	client, _ := raygun4go.New("key", "app name")
-	client.Version("1.0")
+
 	h := &hook{
-		Client: &raygunClientMock{
-			c: client,
-			fn: func(entry *raygun4go.ErrorEntry) error {
+		notifier: &raygunClientMock{
+			mockNotify: func(entry *raygunclient.ErrorEntry) error {
 				if entry == nil {
 					t.Error("entry should not be nil")
 				}
@@ -44,10 +36,11 @@ func TestFire_WhenLogEntryHasError_ShouldSubmitEntry(t *testing.T) {
 	}
 
 	le := logrus.NewEntry(logrus.StandardLogger()).
-		WithField(ErrorFieldName, e).
-		WithField(RequestFieldName, r).
-		WithField(UserFieldName, u).
-		WithField(CustomDataFieldName, cd)
+		WithField(ErrorFieldName, e)
+
+	le = EntryWithRequest(le, r)
+	le = EntryWithUser(le, u)
+	le = EntryWithCustomData(le, cd)
 
 	if err := h.Fire(le); err != nil {
 		t.Error(err)
@@ -56,16 +49,13 @@ func TestFire_WhenLogEntryHasError_ShouldSubmitEntry(t *testing.T) {
 
 func TestFire_WhenLogEntryErrorMsg_ShouldSubmitEntry(t *testing.T) {
 	msg := "test error"
-	r := &http.Request{}
+	r, _ := http.NewRequest("GET", "/", nil)
 	u := "user"
 	cd := &struct{ name string }{"custom"}
-	client, _ := raygun4go.New("key", "app name")
-	client.Version("1.0")
 
 	h := &hook{
-		Client: &raygunClientMock{
-			c: client,
-			fn: func(entry *raygun4go.ErrorEntry) error {
+		notifier: &raygunClientMock{
+			mockNotify: func(entry *raygunclient.ErrorEntry) error {
 				if entry == nil {
 					t.Error("entry should not be nil")
 				}
@@ -74,10 +64,10 @@ func TestFire_WhenLogEntryErrorMsg_ShouldSubmitEntry(t *testing.T) {
 		},
 	}
 
-	le := logrus.NewEntry(logrus.StandardLogger()).
-		WithField(RequestFieldName, r).
-		WithField(UserFieldName, u).
-		WithField(CustomDataFieldName, cd)
+	le := logrus.NewEntry(logrus.StandardLogger())
+	le = EntryWithRequest(le, r)
+	le = EntryWithUser(le, u)
+	le = EntryWithCustomData(le, cd)
 	le.Message = msg
 
 	if err := h.Fire(le); err != nil {
@@ -87,13 +77,9 @@ func TestFire_WhenLogEntryErrorMsg_ShouldSubmitEntry(t *testing.T) {
 
 func TestFire_WhenClientReturnsError_ShouldReturnError(t *testing.T) {
 	errClient := errors.New("client error")
-	client, _ := raygun4go.New("key", "app name")
-	client.Version("1.0")
-
 	h := &hook{
-		Client: &raygunClientMock{
-			c: client,
-			fn: func(entry *raygun4go.ErrorEntry) error {
+		notifier: &raygunClientMock{
+			mockNotify: func(entry *raygunclient.ErrorEntry) error {
 				return errClient
 			},
 		},
@@ -108,20 +94,17 @@ func TestFire_WhenClientReturnsError_ShouldReturnError(t *testing.T) {
 }
 
 type raygunClientMock struct {
-	c  *raygun4go.Client
-	fn submitErrMockFn
+	mockNotify               notifyFn
+	mockNotifyWithStackTrace notifyWithStackTraceFn
 }
 
-func (r *raygunClientMock) CreateErrorEntry(err error) *raygun4go.ErrorEntry {
-	return r.c.CreateErrorEntry(err)
+func (r *raygunClientMock) Notify(entry *raygunclient.ErrorEntry) error {
+	return r.mockNotify(entry)
 }
 
-func (r *raygunClientMock) CreateErrorEntryFromMsg(msg string) *raygun4go.ErrorEntry {
-	return r.c.CreateErrorEntryFromMsg(msg)
+func (r *raygunClientMock) NotifyWithStackTrace(entry *raygunclient.ErrorEntry, s stack.Trace) error {
+	return r.mockNotifyWithStackTrace(entry, s)
 }
 
-func (r *raygunClientMock) SubmitError(entry *raygun4go.ErrorEntry) error {
-	return r.fn(entry)
-}
-
-type submitErrMockFn func(entry *raygun4go.ErrorEntry) error
+type notifyFn func(entry *raygunclient.ErrorEntry) error
+type notifyWithStackTraceFn func(entry *raygunclient.ErrorEntry, s stack.Trace) error

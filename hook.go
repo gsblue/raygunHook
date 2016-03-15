@@ -3,27 +3,24 @@
 package raygunHook
 
 import (
-	"github.com/Sirupsen/logrus"
-	ray "github.com/gsblue/raygun4go"
+	"errors"
 	"net/http"
+
+	"github.com/Sirupsen/logrus"
+	ray "github.com/gsblue/raygunclient"
+	"github.com/gsblue/raygunclient/httpdata"
 )
 
 type hook struct {
-	Client raygunClient
+	notifier    ray.Notifier
+	defautltags []string
 }
 
 //HookConfig is the struct to hold the configuration values required for the hook.
 type HookConfig struct {
-	APIKey  string   //APIKey for your raygun account. This field is mandatory.
-	AppName string   //AppName is your application name. This field is mandatory.
-	Version string   //Version of your application
-	Tags    []string //Tags which get added to all the error entries
-}
-
-type raygunClient interface {
-	CreateErrorEntry(err error) *ray.ErrorEntry
-	CreateErrorEntryFromMsg(msg string) *ray.ErrorEntry
-	SubmitError(entry *ray.ErrorEntry) error
+	APIKey      string   //APIKey for your application in raygun. This field is mandatory.
+	Version     string   //Version of your application
+	DefaultTags []string //DefaultTags for your error entries
 }
 
 const (
@@ -38,20 +35,16 @@ const (
 )
 
 //NewHook creates a new raygun logrus.Hook
-func NewHook(config *HookConfig) (logrus.Hook, error) {
-	c, err := ray.New(config.AppName, config.APIKey)
-	if err != nil {
-		return nil, err
-	}
-	c.Version(config.Version).Tags(config.Tags)
+func NewHook(config *HookConfig) logrus.Hook {
+	c := ray.NewClient(config.APIKey, config.Version, nil)
 
-	return &hook{Client: c}, nil
+	return &hook{notifier: c, defautltags: config.DefaultTags}
 }
 
 //EntryWithRequest is a helper function to add request to a logrus.Entry
 //This information eventually gets sent to raygun to.
 func EntryWithRequest(e *logrus.Entry, r *http.Request) *logrus.Entry {
-	return e.WithField(RequestFieldName, ray.NewRequestData(r))
+	return e.WithField(RequestFieldName, httpdata.NewHTTPRequest(r))
 }
 
 //EntryWithUser is a helper function to add user identifier to a logrus Entry
@@ -60,7 +53,7 @@ func EntryWithUser(e *logrus.Entry, user string) *logrus.Entry {
 	return e.WithField(UserFieldName, user)
 }
 
-//EntryWithUser is a helper function to add custom data to a logrus Entry
+//EntryWithCustomData is a helper function to add custom data to a logrus Entry
 //This information eventually gets sent to raygun to.
 func EntryWithCustomData(e *logrus.Entry, data interface{}) *logrus.Entry {
 	return e.WithField(CustomDataFieldName, data)
@@ -72,16 +65,16 @@ func (h *hook) Fire(e *logrus.Entry) error {
 
 	if val, ok := e.Data[ErrorFieldName]; ok {
 		if err, ok := val.(error); ok {
-			entry = h.Client.CreateErrorEntry(err)
+			entry = ray.NewErrorEntry(err)
 		}
 	}
 
 	if entry == nil {
-		entry = h.Client.CreateErrorEntryFromMsg(e.Message)
+		entry = ray.NewErrorEntry(errors.New(e.Message))
 	}
 
 	if val, ok := e.Data[RequestFieldName]; ok {
-		if req, ok := val.(*ray.RequestData); ok {
+		if req, ok := val.(*httpdata.HTTPRequest); ok {
 			entry.Request = req
 		}
 	}
@@ -96,7 +89,9 @@ func (h *hook) Fire(e *logrus.Entry) error {
 		entry.SetCustomData(val)
 	}
 
-	return h.Client.SubmitError(entry)
+	entry.Tags = h.defautltags
+
+	return h.notifier.Notify(entry)
 }
 
 //Levels returns the logrus.Level which this raygung hook supports
